@@ -3,7 +3,7 @@ import Task from "./Task";
 const TaskList = ({ tasks, onDelete, onToggle }) => {
   return (
     <div>
-      {tasks.map((task) => (
+      {tasks && tasks.map((task) => (
         <Task
           key={task.id}
           task={task}
@@ -14,5 +14,6 @@ const TaskList = ({ tasks, onDelete, onToggle }) => {
     </div>
   );
 };
+
 
 export default TaskList;
