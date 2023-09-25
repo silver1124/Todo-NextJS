@@ -2,21 +2,17 @@ import React, { useState } from "react";
 import Link from "next/link";
 import TaskList from "../components/TaskList";
 import { MongoClient } from "mongodb";
-
 // Here initialTodos we get from database .
 const HomePage = ({ initialTodos }) => {
   const [inputValue, setInputValue] = useState("");
   const [tasks, setTasks] = useState(initialTodos);
   const [completedTasks, setCompletedTasks] = useState([]);
-
   const addTask = async () => {
     if (inputValue.trim() === "") return;
-
     const newTask = {
       text: inputValue,
       completed: false,
     };
-
     // Adding the new task to the server
     await fetch("api/new-task", {
       method: "POST",
@@ -25,13 +21,18 @@ const HomePage = ({ initialTodos }) => {
       },
       body: JSON.stringify(newTask),
     });
-
-    // update: Adding the new task to the client-side state
+    // Optimistic update: Adding the new task to the client-side state
     setTasks((prevTasks) => [...prevTasks, newTask]);
     setInputValue("");
   };
 
-  const deleteTask = (taskId) => {
+  const deleteTask = async (taskId) => {
+    console.log(taskId);
+
+    await fetch(`/api/delete-task/${taskId}`, {
+      method: "DELETE",
+    });
+
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
     setCompletedTasks((prevCompletedTasks) =>
       prevCompletedTasks.filter((task) => task.id !== taskId)
@@ -46,7 +47,6 @@ const HomePage = ({ initialTodos }) => {
       },
       body: JSON.stringify({ completed: true }), // Update completed to true
     });
-
     // Update the client-side state
     const updatedTasks = tasks.map((task) =>
       task.id === taskId ? { ...task, completed: true } : task
@@ -89,23 +89,18 @@ const HomePage = ({ initialTodos }) => {
     </div>
   );
 };
-
 export async function getStaticProps() {
   // Connect to the MongoDB database
   const client = await MongoClient.connect(
     "mongodb+srv://Todoapp:4sGOzZymIvyU5qYn@cluster0.pvyqnnf.mongodb.net/todo?retryWrites=true&w=majority&appName=AtlasApp"
   );
-
   const db = client.db();
   // Fetch todos from the database
   const DatabaseTodo = db.collection("todo");
-
   const Todo = await DatabaseTodo.find().toArray();
-
   console.log(Todo);
   // Close the MongoDB connection
   client.close();
-
   return {
     props: {
       // Map todos to the expected format
