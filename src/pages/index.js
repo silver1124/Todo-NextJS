@@ -37,12 +37,21 @@ const HomePage = ({ initialTodos }) => {
       prevCompletedTasks.filter((task) => task.id !== taskId)
     );
   };
-  const toggleTask = (taskId) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
+  const toggleTask = async (taskId) => {
+    // Send a PUT request to update the task's status
+    await fetch(`/api/update-task/${taskId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ completed: true }), // Update completed to true
+    });
+
+    // Update the client-side state
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, completed: true } : task
     );
+    setTasks(updatedTasks.filter((task) => !task.completed)); // Filter out completed tasks
     setCompletedTasks((prevCompletedTasks) => {
       const taskToMove = tasks.find((task) => task.id === taskId);
       if (taskToMove) {
